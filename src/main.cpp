@@ -4,6 +4,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include "secrets.h" // provides WIFI_SSID, WIFI_PASSWORD
+#include "RelayController.h"
 
 const int relayPin = D1;
 const int led = 2;
@@ -38,10 +39,14 @@ void handleNotFound()
 
 void setup()
 {
-    pinMode(relayPin, OUTPUT);
-    digitalWrite(relayPin, LOW);
-    pinMode(led, OUTPUT);
-    digitalWrite(led, 0);
+    RelayController relay(D1);
+
+    relay.begin();
+
+    //    pinMode(relayPin, OUTPUT);
+    //    digitalWrite(relayPin, LOW);
+    //    pinMode(led, OUTPUT);
+    //    digitalWrite(led, 0);
 
     Serial.begin(115200);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -64,14 +69,16 @@ void setup()
 
     server.onNotFound(handleNotFound);
     server.on("/", handleRoot);
-    server.on("/on", []()
+    server.on("/on", [&relay]()
               {
         server.send(200, "text/plain", "LIGHTS ON");
-        digitalWrite(relayPin, HIGH); });
-    server.on("/off", []()
+        //digitalWrite(relayPin, HIGH)
+        relay.turnOn(); });
+    server.on("/off", [&relay]()
               {
         server.send(200, "text/plain", "LIGHTS OFF");
-        digitalWrite(relayPin, LOW); });
+        //digitalWrite(relayPin, LOW)
+        relay.turnOff(); });
 
     server.begin();
     Serial.println("HTTP server started");
