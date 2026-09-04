@@ -1,0 +1,14 @@
+{
+    "name": "ESP8266 PlatformIO Dev",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "platformio.platformio-ide"
+            ]
+        }
+    },
+    "remoteUser": "vscode"
+}
