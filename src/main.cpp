@@ -5,48 +5,16 @@
 #include <ESP8266mDNS.h>
 #include "secrets.h" // provides WIFI_SSID, WIFI_PASSWORD
 #include "RelayController.h"
-
-const int relayPin = D1;
-const int led = 2;
+#include "LightWebServer.h"
 
 MDNSResponder mdns;
-ESP8266WebServer server(80);
 
-void handleRoot()
-{
-    server.send(200, "text/plain",
-                "hello from esp8266!) \n/on: to turn LED ON \n/off: to turn LED OFF \n");
-}
-
-void handleNotFound()
-{
-    digitalWrite(led, 1);
-    String message = "File Not Found\n\n";
-    message += "URI: ";
-    message += server.uri();
-    message += "\nMethod: ";
-    message += (server.method() == HTTP_GET) ? "GET" : "POST";
-    message += "\nArguments: ";
-    message += server.args();
-    message += "\n";
-    for (uint8_t i = 0; i < server.args(); i++)
-    {
-        message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-    }
-    server.send(404, "text/plain", message);
-    digitalWrite(led, 0);
-}
+RelayController relay(D1);
+LightWebServer webServer(relay);
 
 void setup()
 {
-    RelayController relay(D1);
-
     relay.begin();
-
-    //    pinMode(relayPin, OUTPUT);
-    //    digitalWrite(relayPin, LOW);
-    //    pinMode(led, OUTPUT);
-    //    digitalWrite(led, 0);
 
     Serial.begin(115200);
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -67,26 +35,12 @@ void setup()
         Serial.println("MDNS responder started");
     }
 
-    server.onNotFound(handleNotFound);
-    server.on("/", handleRoot);
-    server.on("/on", [&relay]()
-              {
-        server.send(200, "text/plain", "LIGHTS ON");
-        //digitalWrite(relayPin, HIGH)
-        relay.turnOn(); });
-    server.on("/off", [&relay]()
-              {
-        server.send(200, "text/plain", "LIGHTS OFF");
-        //digitalWrite(relayPin, LOW)
-        relay.turnOff(); });
+    webServer.begin();
 
-    server.begin();
     Serial.println("HTTP server started");
-
-    pinMode(BUILTIN_LED, OUTPUT);
 }
 
 void loop()
 {
-    server.handleClient();
+    webServer.handleClient();
 }
