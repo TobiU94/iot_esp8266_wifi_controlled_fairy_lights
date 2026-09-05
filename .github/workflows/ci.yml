@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "development", "feature/**"]
+  pull_request:
+    branches: ["main", "development"]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-pio-${{ hashFiles('platformio.ini')}}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+      
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Run native tests
+        run: pio test -e native
+
+      # Currently main.cpp:6 does #include "secrets.h", but .gitignore: excludes secrets.h — correctly so.
+      # But that means the file doesn't exist on the CI runner, so pio run -e nodemcuv2 will die with:
+      # fatal error: secrets.h: No such file or directory
+      #
+      # POC fix for now:
+      # NOTE: this firmware cannot and shall NOT be flashed!
+      - name: Create placeholder secrets.h
+        run: |
+          printf '#pragma once\n#define WIFI_SSID "ci-placeholder"\n#define WIFI_PASSWORD "ci-placeholder"\n' > include/secrets.h
+
+      - name: Build ESP8266 firmware
+        run: pio run -e nodemcuv2
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-nodemcuv2
+          path: .pio/build/nodemcuv2/firmware.bin
+          if-no-files-found: error
