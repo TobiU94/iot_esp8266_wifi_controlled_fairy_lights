@@ -11,7 +11,7 @@ ENV PATH="/opt/pio-venv/bin:$PATH"
 RUN pip install platformio
 
 # Pre-download ESP8266 platform (to speed up first build)
-RUN pio platform install expressif8266
+RUN pio platform install espressif8266
 
 # Set working directory
 WORKDIR /workspace
