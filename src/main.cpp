@@ -6,10 +6,12 @@
 #include "secrets.h" // provides WIFI_SSID, WIFI_PASSWORD
 #include "RelayController.h"
 #include "LightWebServer.h"
+#include "Esp8266Hal.h"
 
 MDNSResponder mdns;
 
-RelayController relay(D1);
+Esp8266Hal hal;
+RelayController relay(hal, D1);
 LightWebServer webServer(relay);
 
 void setup()
