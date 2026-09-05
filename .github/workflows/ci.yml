@@ -30,15 +30,6 @@ jobs:
       - name: Run native tests
         run: pio test -e native
 
-      # Currently main.cpp:6 does #include "secrets.h", but .gitignore: excludes secrets.h — correctly so.
-      # But that means the file doesn't exist on the CI runner, so pio run -e nodemcuv2 will die with:
-      # fatal error: secrets.h: No such file or directory
-      #
-      # POC fix for now:
-      # NOTE: this firmware cannot and shall NOT be flashed!
-      - name: Create placeholder secrets.h
-        run: cp include/secrets.example.h include/secrets.h
-
       - name: Build ESP8266 firmware
         run: pio run -e nodemcuv2
 
