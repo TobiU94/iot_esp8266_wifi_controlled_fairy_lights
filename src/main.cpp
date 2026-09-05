@@ -3,7 +3,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include "secrets.h" // provides WIFI_SSID, WIFI_PASSWORD
+#include <WiFiManager.h>
 #include "RelayController.h"
 #include "LightWebServer.h"
 #include "Esp8266Hal.h"
@@ -14,29 +14,43 @@ Esp8266Hal hal;
 RelayController relay(hal, D1);
 LightWebServer webServer(relay);
 
-void setup()
+void initializeNetwork()
 {
-    relay.begin();
-
+    // WiFiManager: tries saved credentials first;
+    // if none/failed, starts AP "FairyLight-Setup" so the user can configures
+    // his WiFi via captive portal.
+    // Credentials persist in flash across reboots.
     Serial.begin(115200);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFiManager wifiManager;
 
-    while (WiFi.status() != WL_CONNECTED)
+    bool connected = wifiManager.autoConnect("FairyLight-Setup");
+
+    if (!connected)
     {
-        delay(500);
-        Serial.print(".");
+        Serial.println("Failed to connect and timed out - restarting...");
+        delay(3000);
+        ESP.restart();
     }
-    Serial.println("");
+
+    // upon successful connection
     Serial.print("Connected to ");
-    Serial.println(WIFI_SSID);
+    Serial.println(WiFi.SSID());
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
+    // mDNS exposes the board at http://esp8266.local
     if (mdns.begin("esp8266", WiFi.localIP()))
     {
         Serial.println("MDNS responder started");
     }
+}
 
+void setup()
+{
+
+    initializeNetwork();
+
+    relay.begin();
     webServer.begin();
 
     Serial.println("HTTP server started");
@@ -45,4 +59,5 @@ void setup()
 void loop()
 {
     webServer.handleClient();
+    mdns.update(); // required to keep mdns responsive
 }
