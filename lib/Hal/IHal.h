@@ -4,9 +4,9 @@
 class IHal
 {
 public:
-    static constexpr uint8_t LOW = 0;
-    static constexpr uint8_t HIGH = 1;
-    static constexpr uint8_t OUTPUT = 1;
+    static constexpr uint8_t PIN_LOW = 0;
+    static constexpr uint8_t PIN_HIGH = 1;
+    static constexpr uint8_t PIN_OUTPUT = 1;
 
     virtual ~IHal() = default;
 

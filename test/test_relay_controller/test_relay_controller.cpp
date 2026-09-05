@@ -10,9 +10,9 @@ void test_begin_configures_pin_as_output_and_turns_off()
     relay.begin();
 
     TEST_ASSERT_EQUAL(5, hal.lastPin); // hal is autonomous; it is only dependency injected into relay, but relay does not own it
-    TEST_ASSERT_EQUAL(IHal::OUTPUT, hal.lastMode);
-    TEST_ASSERT_EQUAL(IHal::LOW, hal.lastValue); // pinMode expected to go low via begin() -> turnOff() sequence
-    TEST_ASSERT_FALSE(relay.isOn());             // pinMode should be off (see above)
+    TEST_ASSERT_EQUAL(IHal::PIN_OUTPUT, hal.lastMode);
+    TEST_ASSERT_EQUAL(IHal::PIN_LOW, hal.lastValue); // pinMode expected to go low via begin() -> turnOff() sequence
+    TEST_ASSERT_FALSE(relay.isOn());                 // pinMode should be off (see above)
 }
 
 void test_turnOn_writes_high()
@@ -23,7 +23,7 @@ void test_turnOn_writes_high()
     relay.begin();
     relay.turnOn();
 
-    TEST_ASSERT_EQUAL(IHal::HIGH, hal.lastValue);
+    TEST_ASSERT_EQUAL(IHal::PIN_HIGH, hal.lastValue);
     TEST_ASSERT_TRUE(relay.isOn());
 }
 
@@ -36,7 +36,7 @@ void test_turnOff_writes_low()
     relay.turnOn();
     relay.turnOff();
 
-    TEST_ASSERT_EQUAL(IHal::LOW, hal.lastValue);
+    TEST_ASSERT_EQUAL(IHal::PIN_LOW, hal.lastValue);
     TEST_ASSERT_FALSE(relay.isOn());
 }
 
