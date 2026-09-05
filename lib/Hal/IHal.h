@@ -4,6 +4,10 @@
 class IHal
 {
 public:
+    static constexpr uint8_t LOW = 0;
+    static constexpr uint8_t HIGH = 1;
+    static constexpr uint8_t OUTPUT = 1;
+
     virtual ~IHal() = default;
 
     virtual void pinMode(uint8_t pin, uint8_t mode) = 0;
