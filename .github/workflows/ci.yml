@@ -37,8 +37,7 @@ jobs:
       # POC fix for now:
       # NOTE: this firmware cannot and shall NOT be flashed!
       - name: Create placeholder secrets.h
-        run: |
-          printf '#pragma once\n#define WIFI_SSID "ci-placeholder"\n#define WIFI_PASSWORD "ci-placeholder"\n' > include/secrets.h
+        run: cp include/secrets.example.h include/secrets.h
 
       - name: Build ESP8266 firmware
         run: pio run -e nodemcuv2
