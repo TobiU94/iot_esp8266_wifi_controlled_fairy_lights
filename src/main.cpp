@@ -7,12 +7,16 @@
 #include "RelayController.h"
 #include "LightWebServer.h"
 #include "Esp8266Hal.h"
+#include "OtaUpdater.h"
+#include "ota_config.h"
 
 MDNSResponder mdns;
 
 Esp8266Hal hal;
 RelayController relay(hal, D1);
 LightWebServer webServer(relay);
+
+OtaUpdater otaUpdater;
 
 void initializeNetwork()
 {
@@ -54,10 +58,16 @@ void setup()
     webServer.begin();
 
     Serial.println("HTTP server started");
+
+    // bring up OTA firmware update service
+    otaUpdater.begin(OtaConfig::VERSION_URL, OtaConfig::FIRMWARE_URL);
 }
 
 void loop()
 {
     webServer.handleClient();
     mdns.update(); // required to keep mdns responsive
+
+    // Check for OTA updated periodically
+    otaUpdater.checkForUpdateIfDue();
 }
