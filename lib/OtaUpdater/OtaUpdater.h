@@ -8,9 +8,11 @@ public:
     void checkForUpdate(); // called periodically from the loop
     void checkForUpdateIfDue();
 
+    const String &getCurrentFirmwareVersion() const;
+
 private:
     const char *_versionUrl = nullptr;  // set by .begin()
     const char *_firmwareUrl = nullptr; // set by .begin()
-    String _currentVersion = "1.0.0";   // TODO: inject from build
+    String _currentVersion = "31";      //"1.0.0";   // TODO: inject from build
     unsigned long _lastCheckMs = 0;
 };

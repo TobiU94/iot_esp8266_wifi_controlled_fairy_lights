@@ -15,6 +15,8 @@ void OtaUpdater::checkForUpdateIfDue()
     if (now - _lastCheckMs > OtaConfig::CHECK_INTERVAL_MS)
     {
         _lastCheckMs = now;
+
+        Serial.println("Checking for firmware update...");
         checkForUpdate();
     }
 }
@@ -60,4 +62,9 @@ void OtaUpdater::checkForUpdate()
         }
     }
     http.end();
+}
+
+const String &OtaUpdater::getCurrentFirmwareVersion() const
+{
+    return _currentVersion;
 }

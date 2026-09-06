@@ -1,7 +1,9 @@
 #include "LightWebServer.h"
 #include "RelayController.h"
+#include "OtaUpdater.h"
 
-LightWebServer::LightWebServer(RelayController &relay) : _relay(relay), _server(80) {}
+LightWebServer::LightWebServer(RelayController &relay, OtaUpdater &otaUpdater)
+    : _relay(relay), _otaUpdater(otaUpdater), _server(80) {}
 
 void LightWebServer::begin()
 {
@@ -17,6 +19,10 @@ void LightWebServer::begin()
                {
                    _server.send(200, "text/plain", "LIGHTS OFF");
                    _relay.turnOff(); });
+
+    _server.on("/ota/version", [this]()
+               { _server.send(200, "text/plain", _otaUpdater.getCurrentFirmwareVersion()); });
+
     _server.begin();
 }
 
