@@ -39,3 +39,19 @@ jobs:
           name: firmware-nodemcuv2
           path: .pio/build/nodemcuv2/firmware.bin
           if-no-files-found: error
+
+      # --- Publishing and over-the-air (OTA) firmware upgrades ---
+
+      - name: Create version file
+        if:  github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: echo "${{ github.run_nummer }}" > version.txt
+
+      - name: Publish firmware to Github Releases
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Firmware v${{ github.run_number }}
+          files: |
+            .pio/build/nodemcuv2/firmware.bin
+            version.txt
