@@ -23,48 +23,100 @@ void OtaUpdater::checkForUpdateIfDue()
 
 void OtaUpdater::checkForUpdate()
 {
+
+    String availableVersion;
+
+    // Case 0: fetch unsuccessful
+    if (!fetchAvailableVersion(availableVersion))
+    {
+        Serial.println("Unable to query available firmware version.");
+        return;
+    }
+
+    // Case 1: board already has latest released version
+    if (availableVersion == _currentVersion)
+    {
+        Serial.println("Firmware is up to date.");
+        return;
+    }
+
+    // Case 2: board does not yet have latest released version
+    Serial.println("New firmware available: " + availableVersion);
+
     // 1. Fetch version.txt from server
     WiFiClientSecure client;
-
     // skip certificate validation for now; TODO: do clean certificate validation once  functionality proven
     client.setInsecure();
 
-    HTTPClient http;
+    ESPhttpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
 
-    http.begin(client, _versionUrl);
+    const t_httpUpdate_return result = ESPhttpUpdate.update(client, _firmwareUrl);
 
-    int httpCode = http.GET();
-
-    if (httpCode == 200) // http code 200 -> request successfully processed
+    switch (result)
     {
-        String newVersion = http.getString();
-        newVersion.trim();
-
-        if (newVersion != _currentVersion)
-        {
-            Serial.println("New firmware: " + newVersion);
-
-            // 2. Download and flash
-            t_httpUpdate_return ret = ESPhttpUpdate.update(client, _firmwareUrl);
-
-            switch (ret)
-            {
-            case HTTP_UPDATE_FAILED:
-                Serial.printf("Update failed: %s\n", ESPhttpUpdate.getLastErrorString().c_str());
-                break;
-            case HTTP_UPDATE_NO_UPDATES:
-                Serial.println("Firmware up-to-date - No updated needed");
-                break;
-            case HTTP_UPDATE_OK:
-                Serial.println("Update OK - rebooting...");
-                break; // ESP auto-restarts
-            }
-        }
+    case HTTP_UPDATE_FAILED:
+        Serial.printf("Update failed: %s\n", ESPhttpUpdate.getLastErrorString().c_str());
+        break;
+    case HTTP_UPDATE_NO_UPDATES:
+        Serial.println("Firmware up-to-date - No updated needed");
+        break;
+    case HTTP_UPDATE_OK:
+        Serial.println("Update OK - rebooting...");
+        break; // ESP auto-restarts
     }
-    http.end();
 }
 
 const String &OtaUpdater::getCurrentFirmwareVersion() const
 {
     return _currentVersion;
+}
+
+OtaStatus OtaUpdater::getUpdateStatus()
+{
+    // makes use of fetchAvailableVersion
+
+    OtaStatus status{
+        _currentVersion,
+        "",
+        false,
+        false};
+
+    // checks whether query is successful, and if so in-place modifies status.availableVersion
+    status.querySucceeded = fetchAvailableVersion(status.availableVersion);
+
+    if (status.querySucceeded)
+    {
+        status.updateAvailable = (status.availableVersion != status.currentVersion);
+    }
+
+    return status;
+}
+
+bool OtaUpdater::fetchAvailableVersion(String &availableVersion)
+{
+    WiFiClientSecure client;
+    client.setInsecure(); // TODO: ultimately replace by safe connection
+
+    HTTPClient http;
+    http.begin(client, _versionUrl);
+    http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+    http.setRedirectLimit(3);
+
+    const int httpCode = http.GET();
+
+    Serial.printf("Version URL HTTP status: %d\n", httpCode);
+
+    if (httpCode != HTTP_CODE_OK)
+    {
+        Serial.printf("Version request failed: HTTP %d\n", httpCode);
+        http.end(); // ensure clean shutdown of HTTPClient, even if request failed
+        return false;
+    }
+
+    availableVersion = http.getString();
+    availableVersion.trim();
+
+    // clean shutdown of HTTPClient
+    http.end();
+    return true;
 }

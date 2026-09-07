@@ -19,5 +19,11 @@ private:
     OtaUpdater &_otaUpdater;
     ESP8266WebServer _server;
 
-    static constexpr const char *HEADER_MESSAGE = "Hello from ESP8266! \n/on: to turn LED ON \n/off: to turn LED OFF \n/ota/version: currently running firmware version";
+    static constexpr const char *HEADER_MESSAGE =
+        "Hello from ESP8266 WiFi Fairy Lights! \n"
+        "GET    /               - show this help\n"
+        "GET    /on             - turn lights on\n"
+        "GET    /off            - turn lights off\n"
+        "GET    /ota/version    - show installed firmware version\n"
+        "GET    /ota/status     - compare installed and available versions\n";
 };

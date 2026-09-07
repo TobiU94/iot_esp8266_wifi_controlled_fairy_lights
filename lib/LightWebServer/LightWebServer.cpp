@@ -1,3 +1,4 @@
+#include <ESP8266HTTPClient.h>
 #include "LightWebServer.h"
 #include "RelayController.h"
 #include "OtaUpdater.h"
@@ -13,16 +14,35 @@ void LightWebServer::begin()
                { handleRoot(); });
     _server.on("/on", [this]()
                { 
-        _server.send(200, "text/plain", "LIGHTS ON");
+        _server.send(HTTP_CODE_OK, "text/plain", "LIGHTS ON");
         _relay.turnOn(); });
     _server.on("/off", [this]()
                {
-                   _server.send(200, "text/plain", "LIGHTS OFF");
+                   _server.send(HTTP_CODE_OK, "text/plain", "LIGHTS OFF");
                    _relay.turnOff(); });
 
     _server.on("/ota/version", [this]()
-               { _server.send(200, "text/plain", _otaUpdater.getCurrentFirmwareVersion()); });
+               { _server.send(HTTP_CODE_OK, "text/plain", _otaUpdater.getCurrentFirmwareVersion()); });
 
+    _server.on("/ota/status", [this]()
+               {
+            const OtaStatus status = _otaUpdater.getUpdateStatus();
+
+            if (!status.querySucceeded)
+            {
+                _server.send(HTTP_CODE_SERVICE_UNAVAILABLE, "text/plain", "Unable to query firmware version");
+                return ;
+            }
+
+            String response = "{\"current\":\"";
+            response += status.currentVersion;
+            response += "\",\"available\":\"";
+            response += status.availableVersion;
+            response += "\",\"updateAvailable\":";
+            response += status.updateAvailable ? "true" : "false";
+            response += "}";
+
+            _server.send(HTTP_CODE_OK, "application/json", response); });
     _server.begin();
 }
 
