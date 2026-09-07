@@ -1,7 +1,9 @@
+#include <limits>
 #include <ESP8266HTTPClient.h>
 #include "LightWebServer.h"
 #include "RelayController.h"
 #include "OtaUpdater.h"
+#include "ota_config.h"
 
 LightWebServer::LightWebServer(RelayController &relay, OtaUpdater &otaUpdater)
     : _relay(relay), _otaUpdater(otaUpdater), _server(80) {}
@@ -34,15 +36,72 @@ void LightWebServer::begin()
                 return ;
             }
 
-            String response = "{\"current\":\"";
-            response += status.currentVersion;
-            response += "\",\"available\":\"";
-            response += status.availableVersion;
-            response += "\",\"updateAvailable\":";
-            response += status.updateAvailable ? "true" : "false";
-            response += "}";
+            // 1. Single source of truth for the response format
+            static constexpr char jsonFormat[] =
+                "{\n"
+                "  \"current\": \"%s\",\n"
+                "  \"available\": \"%s\",\n"
+                "  \"updateAvailable\": %s\n"
+                "}";
 
-            _server.send(HTTP_CODE_OK, "application/json", response); });
+            // 2. Compute exact stack buffer required dynamically based on runtime string lengths
+            //    Template size minus 7 specifier chars ("%s", "%s", "%s") + 5 ("false") + null terminator
+            const size_t bufferSize = sizeof(jsonFormat) - 7 + status.currentVersion.length() + status.availableVersion.length() + 5 // Max length of boolean string ("false")
+                                      + 1;                                                                                           // Null terminator
+
+            char jsonBuffer[bufferSize];
+
+            snprintf(jsonBuffer, sizeof(jsonBuffer), jsonFormat,
+                     status.currentVersion.c_str(),
+                     status.availableVersion.c_str(),
+                     status.updateAvailable ? "true" : "false");
+
+            // String response = "{\"current\":\"";
+            // response += status.currentVersion;
+            // response += "\",\"available\":\"";
+            // response += status.availableVersion;
+            // response += "\",\"updateAvailable\":";
+            // response += status.updateAvailable ? "true" : "false";
+            // response += "}";
+
+            _server.send(HTTP_CODE_OK, "application/json", jsonBuffer); });
+
+    _server.on("/ota/config", [this]()
+               { 
+                // Auto-calculate exact stack space required at compile time
+                // 1. Single source of truth for the JSON format template
+                static constexpr char jsonFormat[] =
+                    "{\n"
+                    "  \"url\": {\n"
+                    "    \"version_txt\": \"%s\",\n"
+                    "    \"firmware_bin\": \"%s\"\n"
+                    "  },\n"
+                    "  \"check_interval_ms\": %lu\n"
+                    "}";
+
+                // 2. Generic max character length of the integer type (e.g. 10 digits for uint32_t, 20 for uint64_t)
+                using IntervalType = decltype(OtaConfig::CHECK_INTERVAL_MS);
+                constexpr size_t maxIntDigits = std::numeric_limits<IntervalType>::digits10 + 1;
+
+                // 3. Calculate buffer size: template length minus 5 specifier chars ("%s", "%s", "%lu")
+                //    plus the dynamic lengths of the values + 1 null terminator
+                const size_t bufferSize = sizeof(jsonFormat) - 5 + strlen(OtaConfig::VERSION_URL) + strlen(OtaConfig::FIRMWARE_URL) + maxIntDigits + 1;
+                char jsonBuffer[bufferSize];
+
+                snprintf(jsonBuffer, sizeof(jsonBuffer), jsonFormat,
+                         OtaConfig::VERSION_URL,
+                         OtaConfig::FIRMWARE_URL,
+                         OtaConfig::CHECK_INTERVAL_MS);
+
+                _server.send(HTTP_CODE_OK, "application/json", jsonBuffer); });
+
+    _server.on("/ota/check-now", [this]()
+               {
+        _server.send(
+            HTTP_CODE_ACCEPTED,
+            "text/plain",
+            "Manual OTA update check started");
+        _otaUpdater.checkForUpdateNow(); });
     _server.begin();
 }
 

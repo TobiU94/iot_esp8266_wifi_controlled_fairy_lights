@@ -20,6 +20,7 @@ public:
 
     void checkForUpdate(); // called periodically from the loop
     void checkForUpdateIfDue();
+    void checkForUpdateNow();
 
     const String &getCurrentFirmwareVersion() const;
     OtaStatus getUpdateStatus();
