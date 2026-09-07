@@ -56,14 +56,6 @@ void LightWebServer::begin()
                      status.availableVersion.c_str(),
                      status.updateAvailable ? "true" : "false");
 
-            // String response = "{\"current\":\"";
-            // response += status.currentVersion;
-            // response += "\",\"available\":\"";
-            // response += status.availableVersion;
-            // response += "\",\"updateAvailable\":";
-            // response += status.updateAvailable ? "true" : "false";
-            // response += "}";
-
             _server.send(HTTP_CODE_OK, "application/json", jsonBuffer); });
 
     _server.on("/ota/config", [this]()
