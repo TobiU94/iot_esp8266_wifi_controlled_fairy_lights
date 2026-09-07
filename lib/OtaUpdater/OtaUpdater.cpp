@@ -21,6 +21,12 @@ void OtaUpdater::checkForUpdateIfDue()
     }
 }
 
+void OtaUpdater::checkForUpdateNow()
+{
+    Serial.println("Manual OTA update check requested.");
+    checkForUpdate();
+}
+
 void OtaUpdater::checkForUpdate()
 {
 
@@ -103,8 +109,6 @@ bool OtaUpdater::fetchAvailableVersion(String &availableVersion)
     http.setRedirectLimit(3);
 
     const int httpCode = http.GET();
-
-    Serial.printf("Version URL HTTP status: %d\n", httpCode);
 
     if (httpCode != HTTP_CODE_OK)
     {
