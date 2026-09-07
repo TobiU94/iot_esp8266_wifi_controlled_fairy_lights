@@ -1,6 +1,10 @@
 #pragma once
 #include <Arduino.h>
 
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "dev"
+#endif
+
 struct OtaStatus
 {
     String currentVersion;
@@ -23,8 +27,8 @@ public:
 private:
     bool fetchAvailableVersion(String &availableVersion);
 
-    const char *_versionUrl = nullptr;  // set by .begin()
-    const char *_firmwareUrl = nullptr; // set by .begin()
-    String _currentVersion = "31";      //"1.0.0";   // TODO: inject from build
+    const char *_versionUrl = nullptr;         // set by .begin()
+    const char *_firmwareUrl = nullptr;        // set by .begin()
+    String _currentVersion = FIRMWARE_VERSION; //"1.0.0";   // TODO: inject from build
     unsigned long _lastCheckMs = 0;
 };
