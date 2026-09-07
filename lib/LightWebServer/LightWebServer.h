@@ -25,5 +25,7 @@ private:
         "GET    /on             - turn lights on\n"
         "GET    /off            - turn lights off\n"
         "GET    /ota/version    - show installed firmware version\n"
-        "GET    /ota/status     - compare installed and available versions\n";
+        "GET    /ota/status     - compare installed and available versions\n"
+        "GET    /ota/config     - show configuration of OtaUpdater for remote firmware upgrades\n"
+        "POST   /ota/check-now  - manually trigger a check for new firmware version";
 };
