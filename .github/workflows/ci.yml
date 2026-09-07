@@ -37,6 +37,8 @@ jobs:
         run: pio test -e native
 
       - name: Build ESP8266 firmware
+        env:
+          FIRMWARE_VERSION: ${{ github.run_number }}
         run: pio run -e nodemcuv2
 
       - name: Upload firmware artifact
