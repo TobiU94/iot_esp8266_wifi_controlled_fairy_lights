@@ -1,8 +1,3 @@
-Here is a clear, developer-friendly guide designed to drop directly into your repository’s `README.md` file. It explains the purpose of Semantic Versioning, how the version numbers break down, and how developers should format commit messages to drive the automated pipeline.
-
----
-
-```markdown
 ## 🏷️ Versioning & Release Conventions
 
 This project follows **[Semantic Versioning (SemVer 2.0.0)](https://semver.org/)** for all firmware releases. Version numbers are automatically calculated and tagged during the CI/CD pipeline based on commit messages merged into `main`.
@@ -48,5 +43,3 @@ By default, any PR merged to `main` without special tags will trigger a **`PATCH
 * **Feature Branches (`feature/*`):** Continuous integration builds binaries tagged with a `-dev.<run_number>` suffix (e.g., `0.1.1-dev.42`) for testing. No official release is created.
 * **Development Branch (`development`):** Consolidates features and tests integration before tagging.
 * **Main Branch (`main`):** Official releases only. Merges to `main` auto-generate the official Git Tag (e.g., `v0.1.1`), `version.txt`, and GitHub Release assets.
-
-```
