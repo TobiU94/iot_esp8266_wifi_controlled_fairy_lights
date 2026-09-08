@@ -44,8 +44,8 @@ jobs:
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-nodemcuv2
-          path: .pio/build/nodemcuv2/firmware.bin
+          name: firmware-nodemcuv2-release
+          path: .pio/build/nodemcuv2-release/firmware.bin
           if-no-files-found: error
 
       # --- Publishing and over-the-air (OTA) firmware upgrades ---
@@ -61,5 +61,5 @@ jobs:
           tag_name: v${{ github.run_number }}
           name: Firmware v${{ github.run_number }}
           files: |
-            .pio/build/nodemcuv2/firmware.bin
+            .pio/build/nodemcuv2-release/firmware.bin
             version.txt
