@@ -14,6 +14,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch all history/tags for semver parsing
+
+      # 1. Pre-calculate SemVer Tag for build injection
+      - name: Calculate SemVer Version
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          initial_version: 0.1.0
+          dry_run: true
+
+      # 2. Add dev suffix if on feature/PR branches
+      - name: Set Firmware Version env
+        id: set_version
+        run: |
+          VERSION="${{ steps.tag_version.outputs.new_tag }}"
+          if [ "${{ github.ref }}" != "refs/heads/main" ] || [ "${{ github.event_name }}" != "push" ]; then
+            VERSION="${VERSION}-dev.${{ github.run_number }}"
+          fi
+          echo "FIRMWARE_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Calculated Version: ${VERSION}"
+
 
       - uses: actions/setup-python@v5
         with:
@@ -38,7 +62,7 @@ jobs:
 
       - name: Build ESP8266 firmware
         env:
-          FIRMWARE_VERSION: ${{ github.run_number }}
+          FIRMWARE_VERSION: ${{ env.FIRMWARE_VERSION }}
         run: pio run -e nodemcuv2-release
 
       - name: Upload firmware artifact
@@ -50,16 +74,27 @@ jobs:
 
       # --- Publishing and over-the-air (OTA) firmware upgrades ---
 
+      # 4. Push official tag when merged to main
+      - name: Create Git Tag
+        id: create_tag
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          initial_version: 0.1.0
+
       - name: Create version file
         if:  github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: echo "${{ github.run_number }}" > version.txt
+        run: echo "${{ steps.create_tag.outputs.new_version }}" > version.txt
 
       - name: Publish firmware to Github Releases
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Firmware v${{ github.run_number }}
+          tag_name: ${{ steps.create_tag.outputs.new_tag }}
+          name: Firmware ${{ steps.create_tag.outputs.new_tag }}
+          body: ${{ steps.create_tag.outputs.changelog }}
           files: |
             .pio/build/nodemcuv2-release/firmware.bin
             version.txt
