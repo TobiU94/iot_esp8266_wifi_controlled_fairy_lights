@@ -1,8 +1,8 @@
 #pragma once
 
 // Fallback macros if not injected by the build system / IDE
-#ifndef BUILD_VERSION
-#define BUILD_VERSION "0.0.0-dev"
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "0.0.0-dev"
 #endif
 
 #ifndef GIT_COMMIT_HASH
@@ -15,7 +15,7 @@
 
 struct BuildInfo
 {
-    const char *firmwareVersion = BUILD_VERSION;
+    const char *firmwareVersion = FIRMWARE_VERSION;
     const char *gitCommitHash = GIT_COMMIT_HASH;
     const char *buildTimestamp = BUILD_TIMESTAMP;
 
