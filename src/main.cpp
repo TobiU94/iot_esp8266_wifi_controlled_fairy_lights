@@ -9,13 +9,19 @@
 #include "Esp8266Hal.h"
 #include "OtaUpdater.h"
 #include "ota_config.h"
+#include "BuildInfo.h"
 
 MDNSResponder mdns;
 
+BuildInfo buildInfo;
+
+// instantiate the over-the-air (OTA) firmware update service
+OtaUpdater otaUpdater(buildInfo, OtaConfig::VERSION_URL, OtaConfig::FIRMWARE_URL);
+
 Esp8266Hal hal;
 RelayController relay(hal, D1);
-OtaUpdater otaUpdater;
-LightWebServer webServer(relay, otaUpdater);
+
+LightWebServer webServer(relay, otaUpdater, buildInfo);
 
 void initializeNetwork()
 {
@@ -54,8 +60,6 @@ void setup()
     initializeNetwork();
 
     relay.begin();
-    // bring up OTA firmware update service
-    otaUpdater.begin(OtaConfig::VERSION_URL, OtaConfig::FIRMWARE_URL);
 
     webServer.begin();
     Serial.println("HTTP server started");

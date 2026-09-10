@@ -2,11 +2,12 @@
 #include <ESP8266WebServer.h>
 #include "RelayController.h"
 #include "OtaUpdater.h"
+#include "BuildInfo.h"
 
 class LightWebServer
 {
 public:
-    LightWebServer(RelayController &relay, OtaUpdater &otaUpdater);
+    LightWebServer(RelayController &relay, OtaUpdater &otaUpdater, const BuildInfo &buildInfo);
 
     void begin();
     void handleClient();
@@ -17,6 +18,7 @@ private:
 
     RelayController &_relay;
     OtaUpdater &_otaUpdater;
+    const BuildInfo &_buildInfo;
     ESP8266WebServer _server;
 
     static constexpr const char *HEADER_MESSAGE =
@@ -27,5 +29,6 @@ private:
         "GET    /ota/version    - show installed firmware version\n"
         "GET    /ota/status     - compare installed and available versions\n"
         "GET    /ota/config     - show configuration of OtaUpdater for remote firmware upgrades\n"
-        "POST   /ota/check-now  - manually trigger a check for new firmware version";
+        "POST   /ota/check-now  - manually trigger a check for new firmware version\n"
+        "GET    /build/info     - show firmware version, git commit hash and build timestamp";
 };
