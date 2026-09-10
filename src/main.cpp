@@ -14,12 +14,14 @@
 MDNSResponder mdns;
 
 BuildInfo buildInfo;
-Esp8266Hal hal;
-RelayController relay(hal, D1);
-LightWebServer webServer(relay, otaUpdater, buildInfo);
 
 // instantiate the over-the-air (OTA) firmware update service
 OtaUpdater otaUpdater(buildInfo, OtaConfig::VERSION_URL, OtaConfig::FIRMWARE_URL);
+
+Esp8266Hal hal;
+RelayController relay(hal, D1);
+
+LightWebServer webServer(relay, otaUpdater, buildInfo);
 
 void initializeNetwork()
 {
