@@ -7,12 +7,6 @@
 OtaUpdater::OtaUpdater(const BuildInfo &buildInfo, const char *versionUrl, const char *firmwareUrl)
     : _buildInfo(buildInfo), _versionUrl(versionUrl), _firmwareUrl(firmwareUrl) {};
 
-// void OtaUpdater::begin(const char *versionUrl, const char *firmwareUrl)
-// {
-//     _versionUrl = versionUrl;
-//     _firmwareUrl = firmwareUrl;
-// }
-
 void OtaUpdater::checkForUpdateIfDue()
 {
     unsigned long now = millis();

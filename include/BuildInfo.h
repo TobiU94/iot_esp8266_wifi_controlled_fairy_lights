@@ -6,7 +6,7 @@
 #endif
 
 #ifndef GIT_COMMIT_HASH
-#define GIT_COMMIT_HASH "dirty"
+#define GIT_COMMIT_HASH "SoMe__RaNdOm__HaSh"
 #endif
 
 #ifndef BUILD_TIMESTAMP
