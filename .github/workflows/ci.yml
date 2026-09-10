@@ -35,6 +35,8 @@ jobs:
             VERSION="${VERSION}-dev.${{ github.run_number }}"
           fi
           echo "FIRMWARE_VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "GIT_COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S)" >> $GITHUB_ENV
           echo "Calculated Version: ${VERSION}"
 
 
@@ -62,6 +64,8 @@ jobs:
       - name: Build ESP8266 firmware
         env:
           FIRMWARE_VERSION: ${{ env.FIRMWARE_VERSION }}
+          GIT_COMMIT_HASH: ${{ env.GIT_COMMIT_HASH }}
+          BUILD_TIMESTAMP: ${{ env.BUILD_TIMESTAMP }}
         run: pio run -e nodemcuv2-release
 
       - name: Upload firmware artifact

@@ -4,9 +4,10 @@
 #include "RelayController.h"
 #include "OtaUpdater.h"
 #include "ota_config.h"
+#include "BuildInfo.h"
 
-LightWebServer::LightWebServer(RelayController &relay, OtaUpdater &otaUpdater)
-    : _relay(relay), _otaUpdater(otaUpdater), _server(80) {}
+LightWebServer::LightWebServer(RelayController &relay, OtaUpdater &otaUpdater, const BuildInfo &buildInfo)
+    : _relay(relay), _otaUpdater(otaUpdater), _buildInfo(buildInfo), _server(80) {}
 
 void LightWebServer::begin()
 {
@@ -86,6 +87,25 @@ void LightWebServer::begin()
                          OtaConfig::CHECK_INTERVAL_MS);
 
                 _server.send(HTTP_CODE_OK, "application/json", jsonBuffer); });
+
+    _server.on("/build/info", [this]()
+               {
+                   static constexpr char jsonFormat[] =
+                       "{\n"
+                       "  \"firmwareVersion\": \"%s\",\n"
+                       "  \"gitCommitHash\": \"%s\",\n"
+                       "  \"buildTimestamp\": \"%s\"\n"
+                       "}";
+
+                   const size_t bufferSize = sizeof(jsonFormat) - 6 + strlen(_buildInfo.firmwareVersion) + strlen(_buildInfo.gitCommitHash) + strlen(_buildInfo.buildTimestamp) + 1;
+
+                   char jsonBuffer[bufferSize];
+
+                   snprintf(jsonBuffer, sizeof(jsonBuffer), jsonFormat,
+                            _buildInfo.firmwareVersion,
+                            _buildInfo.gitCommitHash,
+                            _buildInfo.buildTimestamp);
+                    _server.send(HTTP_CODE_OK, "application/json", jsonBuffer); });
 
     _server.on("/ota/check-now", [this]()
                {

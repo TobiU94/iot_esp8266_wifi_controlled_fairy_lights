@@ -2,12 +2,16 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 #include "ota_config.h"
+#include "BuildInfo.h"
 
-void OtaUpdater::begin(const char *versionUrl, const char *firmwareUrl)
-{
-    _versionUrl = versionUrl;
-    _firmwareUrl = firmwareUrl;
-}
+OtaUpdater::OtaUpdater(const BuildInfo &buildInfo, const char *versionUrl, const char *firmwareUrl)
+    : _buildInfo(buildInfo), _versionUrl(versionUrl), _firmwareUrl(firmwareUrl) {};
+
+// void OtaUpdater::begin(const char *versionUrl, const char *firmwareUrl)
+// {
+//     _versionUrl = versionUrl;
+//     _firmwareUrl = firmwareUrl;
+// }
 
 void OtaUpdater::checkForUpdateIfDue()
 {
@@ -40,7 +44,7 @@ void OtaUpdater::checkForUpdate()
     }
 
     // Case 1: board already has latest released version
-    if (availableVersion == _currentVersion)
+    if (availableVersion == _buildInfo.firmwareVersion)
     {
         Serial.println("Firmware is up to date.");
         return;
@@ -72,9 +76,9 @@ void OtaUpdater::checkForUpdate()
     }
 }
 
-const String &OtaUpdater::getCurrentFirmwareVersion() const
+const char *OtaUpdater::getCurrentFirmwareVersion() const
 {
-    return _currentVersion;
+    return _buildInfo.firmwareVersion;
 }
 
 OtaStatus OtaUpdater::getUpdateStatus()
@@ -82,7 +86,7 @@ OtaStatus OtaUpdater::getUpdateStatus()
     // makes use of fetchAvailableVersion
 
     OtaStatus status{
-        _currentVersion,
+        _buildInfo.firmwareVersion,
         "",
         false,
         false};
