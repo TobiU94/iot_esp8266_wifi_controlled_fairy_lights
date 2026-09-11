@@ -1,6 +1,10 @@
 #pragma once
-#include <Arduino.h>
+
+#include <cstdint> // for uint32_t
+#include <string>
+
 #include "BuildInfo.h"
+#include "OtaDependencies.h"
 
 #ifndef FIRMWARE_VERSION
 #define FIRMWARE_VERSION "dev"
@@ -8,8 +12,8 @@
 
 struct OtaStatus
 {
-    String currentVersion;
-    String availableVersion;
+    std::string currentVersion;
+    std::string availableVersion;
     bool updateAvailable;
     bool querySucceeded;
 };
@@ -17,8 +21,13 @@ struct OtaStatus
 class OtaUpdater
 {
 public:
-    OtaUpdater(const BuildInfo &build_info, const char *versionUrl, const char *firmwareUrl);
-    void begin(const char *versionUrl, const char *firmwareUrl);
+    OtaUpdater(
+        const BuildInfo &buildInfo,
+        const char *firmwareUrl,
+        IVersionSource &versionSource,
+        IFirmwareInstaller &firmwareInstaller,
+        IClock &clock,
+        uint32_t checkIntervalMs);
 
     void checkForUpdate(); // called periodically from the loop
     void checkForUpdateIfDue();
@@ -28,12 +37,16 @@ public:
     OtaStatus getUpdateStatus();
 
 private:
-    bool fetchAvailableVersion(String &availableVersion);
+    bool fetchAvailableVersion(std::string &availableVersion);
 
-    const BuildInfo &_buildInfo; // dependency-injected; not owned
-    const char *_versionUrl;     // set by .begin()
-    const char *_firmwareUrl;    // set by .begin()
+    // dependency-injected; not owned
+    const BuildInfo &_buildInfo;
+    const char *_firmwareUrl;
+    IVersionSource &_versionSource;
+    IFirmwareInstaller &_firmwareInstaller;
+    IClock &_clock;
 
-    String _currentVersion = FIRMWARE_VERSION; //"1.0.0";   // TODO: inject from build
-    unsigned long _lastCheckMs = 0;
+    //    String _currentVersion = FIRMWARE_VERSION; //"1.0.0";   // TODO: inject from build
+    uint32_t _checkIntervalMs;
+    uint32_t _lastCheckMs = 0;
 };

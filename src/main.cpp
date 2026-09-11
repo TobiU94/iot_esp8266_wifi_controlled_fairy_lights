@@ -11,12 +11,24 @@
 #include "ota_config.h"
 #include "BuildInfo.h"
 
+#include "Esp8266VersionSource.h"
+#include "Esp8266FirmwareInstaller.h"
+#include "Esp8266Clock.h"
+
 MDNSResponder mdns;
 
 BuildInfo buildInfo;
+Esp8266VersionSource versionSource(OtaConfig::VERSION_URL);
+Esp8266FirmwareInstaller firmwareInstaller;
+Esp8266Clock systemClock; //  cannot use "clock"; Arduino.h has it's implementation, otherwise we encounter some name conflict
 
 // instantiate the over-the-air (OTA) firmware update service
-OtaUpdater otaUpdater(buildInfo, OtaConfig::VERSION_URL, OtaConfig::FIRMWARE_URL);
+OtaUpdater otaUpdater(buildInfo,
+                      OtaConfig::FIRMWARE_URL,
+                      versionSource,
+                      firmwareInstaller,
+                      systemClock,
+                      OTA_CHECK_INTERVAL_MS);
 
 Esp8266Hal hal;
 RelayController relay(hal, D1);
