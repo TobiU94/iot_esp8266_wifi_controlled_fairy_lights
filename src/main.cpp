@@ -28,7 +28,7 @@ OtaUpdater otaUpdater(buildInfo,
                       versionSource,
                       firmwareInstaller,
                       systemClock,
-                      OTA_CHECK_INTERVAL_MS);
+                      OtaConfig::CHECK_INTERVAL_MS);
 
 Esp8266Hal hal;
 RelayController relay(hal, D1);

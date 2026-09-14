@@ -6,10 +6,6 @@
 #include "BuildInfo.h"
 #include "OtaDependencies.h"
 
-#ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "dev"
-#endif
-
 struct OtaStatus
 {
     std::string currentVersion;
@@ -46,7 +42,6 @@ private:
     IFirmwareInstaller &_firmwareInstaller;
     IClock &_clock;
 
-    //    String _currentVersion = FIRMWARE_VERSION; //"1.0.0";   // TODO: inject from build
     uint32_t _checkIntervalMs;
     uint32_t _lastCheckMs = 0;
 };

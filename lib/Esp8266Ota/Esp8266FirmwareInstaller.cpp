@@ -1,7 +1,7 @@
 #include "Esp8266FirmwareInstaller.h"
 
-#include <Arduino.h>
 #include <ESP8266httpUpdate.h>
+#include <WiFiClientSecure.h>
 
 FirmwareUpdateResult Esp8266FirmwareInstaller::install(const char *firmwareUrl)
 {
@@ -27,4 +27,4 @@ FirmwareUpdateResult Esp8266FirmwareInstaller::install(const char *firmwareUrl)
     }
 
     return FirmwareUpdateResult::Failed;
-};
+}

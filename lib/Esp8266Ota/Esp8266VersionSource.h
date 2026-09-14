@@ -1,3 +1,4 @@
+#pragma once
 #include "OtaDependencies.h"
 
 class Esp8266VersionSource : public IVersionSource

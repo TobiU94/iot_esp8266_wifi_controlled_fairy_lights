@@ -27,7 +27,7 @@ namespace
     };
 }
 
-// TEST 0:
+// TEST 00:
 void test_current_version_comes_from_build_info()
 {
     OtaUpdaterFixture fixture;
@@ -37,7 +37,7 @@ void test_current_version_comes_from_build_info()
         fixture.updater.getCurrentFirmwareVersion());
 }
 
-// TEST 1:
+// TEST 01:
 void test_check_for_updates_does_not_install_if_version_fetch_fails()
 {
     OtaUpdaterFixture fixture;
@@ -55,7 +55,7 @@ void test_check_for_updates_does_not_install_if_version_fetch_fails()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 2
+// TEST 02
 void test_check_for_update_does_not_install_if_versions_match()
 {
     OtaUpdaterFixture fixture;
@@ -77,7 +77,7 @@ void test_check_for_update_does_not_install_if_versions_match()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 3:
+// TEST 03:
 void test_check_for_update_triggers_install_if_version_mismatch()
 {
     OtaUpdaterFixture fixture;
@@ -106,7 +106,7 @@ void test_check_for_update_triggers_install_if_version_mismatch()
         fixture.firmwareInstaller.lastFirmwareUrl);
 }
 
-// TEST 4:
+// TEST 04:
 // this test verifies what OtaUpdater.getUpdateStatus() reports if
 // retrieving the remote version fails (-> fetchAvailableVersion() return false)
 void test_update_status_reports_fetch_failure()
@@ -134,7 +134,7 @@ void test_update_status_reports_fetch_failure()
     TEST_ASSERT_TRUE(status.availableVersion.empty());
 }
 
-// TEST 5:
+// TEST 05:
 void test_update_status_reports_matching_version()
 {
     OtaUpdaterFixture fixture;
@@ -173,7 +173,7 @@ void test_update_status_reports_matching_version()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 6:
+// TEST 06:
 void test_update_status_reports_available_update()
 {
     OtaUpdaterFixture fixture;
@@ -212,7 +212,7 @@ void test_update_status_reports_available_update()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 7:
+// TEST 07:
 void test_periodic_check_does_not_run_before_interval()
 {
     OtaUpdaterFixture fixture;
@@ -234,7 +234,7 @@ void test_periodic_check_does_not_run_before_interval()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 8:
+// TEST 08:
 void test_periodic_check_does_not_run_at_exact_interval()
 {
     OtaUpdaterFixture fixture;
@@ -256,7 +256,7 @@ void test_periodic_check_does_not_run_at_exact_interval()
         fixture.firmwareInstaller.installCalls);
 }
 
-// TEST 9:
+// TEST 09:
 void test_periodic_check_runs_after_interval()
 {
     OtaUpdaterFixture fixture;
@@ -342,7 +342,7 @@ void test_periodic_check_preserves_rollover_safe_elapsed_time()
         fixture.versionSource.fetchCalls);
 }
 
-// TEST 12
+// TEST 12:
 void test_installer_result_is_not_confused_with_version_decision()
 {
     const FirmwareUpdateResult results[] = {
@@ -373,6 +373,45 @@ void test_installer_result_is_not_confused_with_version_decision()
     }
 }
 
+// TEST 13:
+void test_manual_check_does_not_reset_periodic_check_timer()
+{
+    OtaUpdaterFixture fixture;
+
+    fixture.versionSource.availableVersion = "1.2.3";
+
+    // Establish the periodic check timestamp 101 ms
+    fixture.clock.currentMs = 101;
+    fixture.updater.checkForUpdateIfDue();
+
+    TEST_ASSERT_EQUAL_INT(
+        1,
+        fixture.versionSource.fetchCalls);
+
+    // Manual check should fetch immediately, but must not update
+    // the periodic check timestamp
+    fixture.clock.currentMs = 150;
+    fixture.updater.checkForUpdateNow();
+    TEST_ASSERT_EQUAL_INT(
+        2,
+        fixture.versionSource.fetchCalls);
+
+    // Exactly 100 after the periodic check at 101 ms.
+    // Strict '>' means fetch is not due yet
+    fixture.clock.currentMs = 201;
+    TEST_ASSERT_EQUAL_INT(
+        2,
+        fixture.versionSource.fetchCalls);
+
+    // 101 ms after the periodic check at 101 ms.
+    // This should trigger the next periodic check.
+    fixture.clock.currentMs = 202;
+    fixture.updater.checkForUpdateIfDue();
+    TEST_ASSERT_EQUAL_INT(
+        3,
+        fixture.versionSource.fetchCalls);
+}
+
 // Run test suite
 int main(int, char **)
 {
@@ -391,6 +430,7 @@ int main(int, char **)
     RUN_TEST(test_manual_check_bypasses_interval);                            // TEST 10
     RUN_TEST(test_periodic_check_preserves_rollover_safe_elapsed_time);       // TEST 11
     RUN_TEST(test_installer_result_is_not_confused_with_version_decision);    // TEST 12
+    RUN_TEST(test_manual_check_does_not_reset_periodic_check_timer);          // TEST 13
 
     return UNITY_END();
 }

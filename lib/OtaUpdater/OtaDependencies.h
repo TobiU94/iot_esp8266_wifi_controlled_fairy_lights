@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string> // use std::string to avoid Arduino.h's String dtype; must compile natively
+#include <cstdint>
 
 class IVersionSource
 {
